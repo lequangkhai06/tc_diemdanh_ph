@@ -1,16 +1,14 @@
 import Walkthrough from './Walkthrough';
 import PhoneNumber from './PhoneNumber';
-// import ProfileAccount from './ProfileAccount';
-// import Verification from './Verification';
 import Contacts from './Contacts';
-import PersonalChat from './PersonalChat';
-import More from './More';
+import Notifications from './Notifications';
+import ViewNotification from './ViewNotification';
+import UserInfomation from './UserInfomation';
 export {
   Walkthrough,
   PhoneNumber,
-  //   ProfileAccount,
-  //   Verification,
+  Notifications,
+  ViewNotification,
+  UserInfomation,
   Contacts,
-  PersonalChat,
-  More,
 };

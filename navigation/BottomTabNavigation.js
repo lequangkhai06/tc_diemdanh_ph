@@ -1,13 +1,14 @@
 import React, {useEffect, useState, useCallback} from 'react';
-import {View, Text, Alert} from 'react-native';
+import {View, Text, Alert, StyleSheet} from 'react-native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {COLORS, FONTS} from '../constants';
-import {Contacts, More} from '../screens';
+import {Notifications, UserInfomation, Contacts} from '../screens';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import messaging from '@react-native-firebase/messaging';
 import axios from 'axios';
 import qs from 'qs';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {SafeAreaView} from 'react-native-safe-area-context';
 const Tab = createBottomTabNavigator();
 const BottomTabNavigation = () => {
   const [notificationToken, setNotificationToken] = useState('');
@@ -35,17 +36,19 @@ const BottomTabNavigation = () => {
         'Cảnh báo',
         'Để nhận được thông báo từ giáo viên, nhà trường. Vui lòng cho chép thông báo!',
       );
-      // console.log('Authorization status: ' + authStatus);
     }
     const token = await messaging().getToken();
     setNotificationToken(token);
+    console.log(token);
+    // lưu token thông báo vào local storage
+    AsyncStorage.setItem('@firebaseToken', token);
     //Alert.alert('Đã đăng kí nhận thông báo thành công!');
   };
 
   const postNotificationToken = useCallback(async () => {
     try {
       const response = await axios.post(
-        'https://khkt.khaidev.com/api/notificationToken.php',
+        'https://quangkhaideptrai.000webhostapp.com/api/notificationToken.php',
         qs.stringify({
           notificationToken: notificationToken,
           phoneNumber: phoneNumber,
@@ -56,7 +59,6 @@ const BottomTabNavigation = () => {
       console.log(data);
     } catch (error) {
       console.log(error);
-      // Alert.alert('Có lỗi', error);
     }
   }, [notificationToken, phoneNumber]);
 
@@ -79,120 +81,188 @@ const BottomTabNavigation = () => {
   useEffect(() => {
     const unsubscribe = messaging().onMessage(async remoteMessage => {
       console.log(remoteMessage);
-      Alert.alert('🚀 Bạn có thông báo mới', remoteMessage.notification.body);
+      Alert.alert('Bạn có thông báo mới', remoteMessage.notification.body);
     });
     return unsubscribe;
   });
   return (
-    <Tab.Navigator
-      screenOptions={{
-        animationEnabled: true,
-        tabBarShowLabel: false,
-        headerShown: false,
-        tabBarHideOnKeyboard: true,
-        tabBarStyle: {
-          position: 'absolute',
-          backgroundColor: COLORS.white,
-          bottom: 0,
-          right: 0,
-          left: 0,
-          elevation: 0,
-          height: 60,
-        },
-      }}>
-      <Tab.Screen
-        name="Contacts"
-        component={Contacts}
-        options={{
-          tabBarIcon: ({focused}) => {
-            return (
-              <View
-                style={{
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}>
-                {focused ? (
-                  <>
-                    <Icon name="bell-badge" size={26} color={COLORS.primary} />
-                    <Text
-                      style={{
-                        ...FONTS.body4,
-                        color: COLORS.primary,
-                      }}>
-                      Thông báo
-                    </Text>
-                  </>
-                ) : (
-                  <>
-                    <Icon
-                      name="bell-badge-outline"
-                      size={26}
-                      color={COLORS.black}
-                    />
-                    <Text
-                      style={{
-                        ...FONTS.body3,
-                        color: COLORS.secondaryBlack,
-                      }}>
-                      Thông báo
-                    </Text>
-                  </>
-                )}
-              </View>
-            );
-          },
-        }}
-      />
+    <SafeAreaView style={styles.container}>
+      <Tab.Navigator
+        screenOptions={{
+          tabBarStyle: styles.tabBar,
+          tabBarShowLabel: false,
+          headerShown: false,
+          tabBarHideOnKeyboard: true,
+        }}>
+        <Tab.Screen
+          name="Notifications"
+          component={Notifications}
+          options={{
+            tabBarIcon: ({focused}) => {
+              return (
+                <View
+                  style={{
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}>
+                  {focused ? (
+                    <>
+                      <Icon name="bell-badge" size={26} color={COLORS.white} />
+                      <Text
+                        style={{
+                          ...FONTS.body4,
+                          color: COLORS.white,
+                        }}>
+                        Thông báo
+                      </Text>
+                    </>
+                  ) : (
+                    <>
+                      <Icon
+                        name="bell-badge-outline"
+                        size={26}
+                        color={COLORS.white}
+                      />
+                      <Text
+                        style={{
+                          ...FONTS.body3,
+                          color: COLORS.white,
+                        }}>
+                        Thông báo
+                      </Text>
+                    </>
+                  )}
+                </View>
+              );
+            },
+          }}
+        />
 
-      <Tab.Screen
-        name="More"
-        component={More}
-        options={{
-          tabBarIcon: ({focused}) => {
-            return (
-              <View
-                style={{
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}>
-                {focused ? (
-                  <>
-                    <Icon
-                      name="account-circle"
-                      size={26}
-                      color={COLORS.primary}
-                    />
-                    <Text
-                      style={{
-                        ...FONTS.body3,
-                        color: COLORS.primary,
-                      }}>
-                      Thông tin
-                    </Text>
-                  </>
-                ) : (
-                  <>
-                    <Icon
-                      name="account-circle-outline"
-                      size={26}
-                      color={COLORS.black}
-                    />
-                    <Text
-                      style={{
-                        ...FONTS.body4,
-                        color: COLORS.secondaryBlack,
-                      }}>
-                      Thông tin
-                    </Text>
-                  </>
-                )}
-              </View>
-            );
-          },
-        }}
-      />
-    </Tab.Navigator>
+        <Tab.Screen
+          name="Contacts"
+          component={Contacts}
+          options={{
+            tabBarIcon: ({focused}) => {
+              return (
+                <View
+                  style={{
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}>
+                  {focused ? (
+                    <>
+                      <Icon name="contacts" size={26} color={COLORS.white} />
+                      <Text
+                        style={{
+                          ...FONTS.body4,
+                          color: COLORS.white,
+                        }}>
+                        Danh bạ
+                      </Text>
+                    </>
+                  ) : (
+                    <>
+                      <Icon
+                        name="contacts-outline"
+                        size={26}
+                        color={COLORS.white}
+                      />
+                      <Text
+                        style={{
+                          ...FONTS.body3,
+                          color: COLORS.white,
+                        }}>
+                        Danh bạ
+                      </Text>
+                    </>
+                  )}
+                </View>
+              );
+            },
+          }}
+        />
+
+        <Tab.Screen
+          name="UserInfomation"
+          component={UserInfomation}
+          options={{
+            tabBarIcon: ({focused}) => {
+              return (
+                <View
+                  style={{
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}>
+                  {focused ? (
+                    <>
+                      <Icon
+                        name="account-circle"
+                        size={26}
+                        color={COLORS.white}
+                      />
+                      <Text
+                        style={{
+                          ...FONTS.body3,
+                          color: COLORS.white,
+                        }}>
+                        Thông tin
+                      </Text>
+                    </>
+                  ) : (
+                    <>
+                      <Icon
+                        name="account-circle-outline"
+                        size={26}
+                        color={COLORS.white}
+                      />
+                      <Text
+                        style={{
+                          ...FONTS.body4,
+                          color: COLORS.white,
+                        }}>
+                        Thông tin
+                      </Text>
+                    </>
+                  )}
+                </View>
+              );
+            },
+          }}
+        />
+      </Tab.Navigator>
+    </SafeAreaView>
   );
 };
+// custom styles
+const styles = StyleSheet.create({
+  tabBar: {
+    position: 'absolute',
+    backgroundColor: COLORS.primary,
+    bottom: 8,
+    right: 10,
+    left: 10,
+    elevation: 0,
+    height: 60,
+    borderRadius: 15,
+    borderBottomWidth: 0,
+  },
+  tabItem: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tabText: {
+    ...FONTS.body3,
+    color: COLORS.secondaryBlack,
+  },
+  tabTextActive: {
+    ...FONTS.body4,
+    color: COLORS.primary,
+  },
+  container: {
+    flex: 1,
+    backgroundColor: 'white',
+  },
+});
 
 export default BottomTabNavigation;

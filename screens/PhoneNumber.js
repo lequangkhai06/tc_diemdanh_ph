@@ -7,6 +7,7 @@ import {
   Image,
   Alert,
   StatusBar,
+  ToastAndroid,
 } from 'react-native';
 import {TouchableOpacity} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
@@ -17,10 +18,24 @@ import axios from 'axios';
 import qs from 'qs';
 import SpinnerOverlay from 'react-native-loading-spinner-overlay';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import CustomModal from '../components/Modal';
 export default function PhoneNumber({navigation}) {
-  const [phoneNumber, setPhoneNumber] = useState(''); // Lưu trữ giá trị số điện thoại
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  // kiểm tra người dùng đã đăng nhập hay chưa?
+  // modal state
+  const [modalVisible, setModalVisible] = useState(false);
+  const [title, setTitle] = useState('');
+  const [message, setMessage] = useState('');
+  // Modal
+  const showModal = (ModalTitle, ModalMessage) => {
+    setTitle(ModalTitle);
+    setMessage(ModalMessage);
+    setModalVisible(true);
+  };
+
+  const closeModal = () => {
+    setModalVisible(false);
+  };
   useEffect(() => {
     const checkToken = async () => {
       try {
@@ -36,13 +51,13 @@ export default function PhoneNumber({navigation}) {
   });
   const checkPhoneNumber = async () => {
     if (phoneNumber === '') {
-      Alert.alert('Thông báo', 'Vui lòng nhập số điện thoại.');
+      showModal('Thông báo', 'Vui lòng nhập số điện thoại.');
       return;
     }
     try {
       setIsLoading(true);
       const response = await axios.post(
-        'https://khkt.khaidev.com/api/checkParentNumber.php',
+        'https://quangkhaideptrai.000webhostapp.com/api/checkParentNumber.php',
         qs.stringify({
           phoneNumber: phoneNumber,
         }),
@@ -60,17 +75,35 @@ export default function PhoneNumber({navigation}) {
         };
         storeToken(phoneNumber)
           .then(() => {
+            navigation.navigate('BottomTabNavigation');
             console.log('Lưu giá trị thành công');
           })
           .catch(error => {
+            //Alert.alert('Có lỗi', 'Không thể lưu phiên đăng nhập.');
+            showModal('Có lỗi', 'Không thể lưu phiên đăng nhập.');
             console.error('Lưu giá trị thất bại:', error);
           });
-        navigation.navigate('BottomTabNavigation');
+        ToastAndroid.showWithGravityAndOffset(
+          data.message,
+          ToastAndroid.LONG,
+          ToastAndroid.BOTTOM,
+          25,
+          50,
+        );
+        return;
       }
-      Alert.alert('Thông báo', data.message);
+      // Alert.alert('Thông báo', data.message);
+      showModal('Thông báo', data.message);
     } catch (error) {
       setIsLoading(false);
-      Alert.alert('Có lỗi', error);
+      console.log(error);
+      ToastAndroid.showWithGravityAndOffset(
+        error,
+        ToastAndroid.LONG,
+        ToastAndroid.CENTER,
+        25,
+        50,
+      );
     }
   };
   return (
@@ -95,7 +128,7 @@ export default function PhoneNumber({navigation}) {
                 color: COLORS.black,
                 marginTop: 40,
               }}>
-              Nhập Số Điện Thoại Của Bạn
+              Đăng Nhập Bằng Số Điện Thoại
             </Text>
             <Text
               style={{
@@ -199,6 +232,13 @@ export default function PhoneNumber({navigation}) {
           </View>
         </ScrollView>
       </SafeAreaView>
+      {/* show modal here */}
+      <CustomModal
+        title={title}
+        message={message}
+        visible={modalVisible}
+        onClose={closeModal}
+      />
     </>
   );
 }

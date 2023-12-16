@@ -16,7 +16,7 @@ const defaultdata = [
     system: true,
   },
 ];
-const PersonalChat = ({navigation}) => {
+const ViewNotification = ({navigation}) => {
   const [isLoading, setIsLoading] = useState(false);
   const [messages, setMessages] = useState(defaultdata);
   const route = useRoute();
@@ -47,7 +47,7 @@ const PersonalChat = ({navigation}) => {
     try {
       setIsLoading(true);
       const response = await axios.get(
-        `https://khkt.khaidev.com/api/listMessages.php?phoneNumber=${phoneNumber}`,
+        `https://quangkhaideptrai.000webhostapp.com/api/listMessages.php?phoneNumber=${phoneNumber}`,
       );
       const data = response.data;
 
@@ -146,7 +146,8 @@ const PersonalChat = ({navigation}) => {
               flexDirection: 'row',
               alignItems: 'center',
             }}>
-            <TouchableOpacity onPress={() => navigation.navigate('Contacts')}>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('Notifications')}>
               <Icon name="chevron-left" size={28} color={COLORS.white} />
             </TouchableOpacity>
             <View>
@@ -209,4 +210,4 @@ const PersonalChat = ({navigation}) => {
   );
 };
 
-export default PersonalChat;
+export default ViewNotification;
